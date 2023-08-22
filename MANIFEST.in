@@ -1,2 +1,2 @@
-include src/op_parser/log.conf
-include src/op_parser/operation.peg
+include src/op2_parser/log.conf
+include src/op2_parser/operation.peg

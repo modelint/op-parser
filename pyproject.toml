@@ -23,7 +23,7 @@ build = ["build", "twine"]
 dev = ["bump2version", "pytest"]
 
 [project.scripts]
-eeop = "op_parser.__main__:main"
+eeop = "op2_parser.__main__:main"
 
 [project.urls]
 repository    = "https://github.com/modelint/op-parser"
