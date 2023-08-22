@@ -3,7 +3,7 @@
 from arpeggio import PTNodeVisitor
 from collections import namedtuple
 
-Op_a = namedtuple('Op_a', 'op_type ee op flows_in flow_out activity')
+Op_a = namedtuple('Op_a', 'op_type ee cname op flows_in flow_out activity')
 
 class OpVisitor(PTNodeVisitor):
 
@@ -16,7 +16,7 @@ class OpVisitor(PTNodeVisitor):
         a = children.results.get('activity')
         a = None if not a else a[0]
         return Op_a(
-            op_type=children[0]['op_type'], ee=children[0]['ee'], op=children[1]['op_name'],
+            op_type=children[0]['op_type'], ee=children[0]['ee'], cname=children[0]['cname'], op=children[1]['op_name'],
             flows_in=children[1]['flows_in'], flow_out=children[1]['flow_out'],
             activity=a
         )
@@ -24,10 +24,13 @@ class OpVisitor(PTNodeVisitor):
     @classmethod
     def visit_ee_prefix(cls, node, children):
         """
-        op_type icaps_name '.'
+        op_type SP* ee_name ('<' cname '>')? '.'
         """
+        ee_name = children.results['ee_name'][0]
+        cname = children.results.get('cname')
+        cname = ee_name.title() if not cname else cname[0]
         op_type = 'ingress' if children[0] == '<<' else 'egress'
-        return { 'op_type': op_type, 'ee': children[1] }
+        return { 'op_type': op_type, 'ee': ee_name, 'cname': cname }
 
     @classmethod
     def visit_signature(cls, node, children):
@@ -100,7 +103,23 @@ class OpVisitor(PTNodeVisitor):
         return name
 
     @classmethod
-    def visit_icaps_name(cls, node, children):
+    def visit_op_name(cls, node, children):
+        """
+        iword (DELIM word)*
+        """
+        name = ''.join(children)
+        return name
+
+    @classmethod
+    def visit_cname(cls, node, children):
+        """
+        iword (DELIM word)*
+        """
+        name = ''.join(children)
+        return name
+
+    @classmethod
+    def visit_ee_name(cls, node, children):
         """
         iword (DELIM word)*
         """

@@ -2,9 +2,12 @@
 
 operation = BLOCK_END ee_prefix signature BLOCK_END activity? EOF
 
-ee_prefix = op_type SP* icaps_name '.'
+ee_prefix = op_type SP* ee_name ('<' cname '>')? '.'
+ee_name = icaps_name
+cname = icaps_name
 op_type = '>>' / '<<'
-signature = icaps_name input_parameters output_type? NL
+signature = op_name input_parameters output_type? NL
+op_name = icaps_name
 input_parameters = '(' SP? (parameters? SP?) ')'
 output_type = ' : ' icaps_all_name
 parameters = parameter (', ' parameter)*
