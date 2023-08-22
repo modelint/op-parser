@@ -1,42 +1,72 @@
-""" op_parser.py """
+""" op2_parser.py """
+# For mysterious reasons the name op_parser.py causes imports to fail in the PyCharm IDE
+# Have given up and named it op2_ for now
 
-from class_model_dsl.op_exceptions import OpGrammarFileOpen, OpParseError,\
+from op2_parser.exceptions import OpGrammarFileOpen, OpParseError,\
     OpInputFileEmpty, OpInputFileOpen
-from class_model_dsl.parse.op_visitor import OpVisitor
+from op2_parser.op_visitor import OpVisitor
 from arpeggio import visit_parse_tree, NoMatch
 from arpeggio.cleanpeg import ParserPEG
-import os # For issuing system commands to generate diagnostic files
+import os  # For issuing system commands to generate diagnostic files
 from pathlib import Path
 
 class OpParser:
     """
     Parses an operation file
     """
-    op_grammar = None # We haven't read it in yet
-    op_text = None # User will provide this
+    debug = False  # by default
+    op_grammar = None  # We haven't read it in yet
+    op_text = None  # User will provide this
+    op_file = None  # The user supplied op file path
 
-    root_rule_name = 'operation' # The required name of the highest level parse element
+    root_rule_name = 'operation'  # The required name of the highest level parse element
 
     # Useful paths within the project
-    project_path = Path(__file__).parent.parent.parent
-    module_path = project_path / 'xuml_populate'
-    grammar_path = module_path / 'grammar' # The grammar files are all here
-    diagnostics_path = module_path / 'diagnostics' # All parser diagnostic output goes here
+    src_path = Path(__file__).parent.parent  # Path to src folder
+    module_path = src_path / 'op2_parser'
+    grammar_path = module_path  # The grammar files are all here
+    cwd = Path.cwd()
+    diagnostics_path = cwd / 'diagnostics'  # All parser diagnostic output goes here
 
     # Files
-    grammar_file = grammar_path / f"{root_rule_name}.peg" # We parse using this peg grammar
+    grammar_file = grammar_path / f"{root_rule_name}.peg"  # We parse using this peg grammar
     grammar_model_pdf = diagnostics_path / f"{root_rule_name}_model.pdf"
     parse_tree_pdf = diagnostics_path / f"{root_rule_name}_parse_tree.pdf"
-    parse_tree_dot = project_path / f"{root_rule_name}_parse_tree.dot"
-    parser_model_dot = project_path / f"{root_rule_name}_peg_parser_model.dot"
+    parse_tree_dot = cwd / f"{root_rule_name}_parse_tree.dot"
+    parser_model_dot = cwd / f"{root_rule_name}_peg_parser_model.dot"
 
-    pg_tree_dot = project_path / "peggrammar_parse_tree.dot"
-    pg_model_dot = project_path / "peggrammar_parser_model.dot"
+    pg_tree_dot = cwd / "peggrammar_parse_tree.dot"
+    pg_model_dot = cwd / "peggrammar_parser_model.dot"
     pg_tree_pdf = diagnostics_path / "peggrammar_parse_tree.pdf"
     pg_model_pdf = diagnostics_path / "peggrammar_parser_model.pdf"
 
     @classmethod
-    def parse(cls, op_path:Path, debug=False):
+    def parse_file(cls, file_input: Path, debug=False):
+        """
+
+        :param file_input:  operation file to read
+        :param debug:  Run parser in debug mode
+        """
+        cls.model_file = file_input
+        cls.debug = debug
+        if debug:
+            # If there is no diagnostics directory, create one in the current working directory
+            cls.diagnostics_path.mkdir(parents=False, exist_ok=True)
+
+        # Read the method file
+        try:
+            cls.op_text = open(file_input, 'r').read() + '\n'
+            # At least one newline at end simplifies grammar rules
+        except OSError as e:
+            raise OpInputFileOpen(file_input)
+
+        if not cls.op_text:
+            raise OpInputFileEmpty(file_input)
+
+        return cls.parse()
+
+    @classmethod
+    def parse(cls, debug=False):
         """
         Parse an Operation
 
@@ -49,17 +79,6 @@ class OpParser:
             cls.op_grammar = open(cls.grammar_file, 'r').read()
         except OSError as e:
             raise OpGrammarFileOpen(cls.grammar_file)
-
-        # Read the method file
-        try:
-            cls.op_text = open(op_path, 'r').read() + '\n' # Ensure there is at least one newline at the end
-        except OSError as e:
-            raise OpInputFileOpen(op_path)
-
-        if not cls.op_text:
-            raise OpInputFileEmpty(op_path)
-
-
 
         # Create an arpeggio parser for our model grammar that does not eliminate whitespace
         # We interpret newlines and indents in our grammar, so whitespace must be preserved

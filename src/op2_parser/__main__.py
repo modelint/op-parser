@@ -9,10 +9,10 @@ import logging.config
 import sys
 import argparse
 from pathlib import Path
-from op_parser import version
-from op_parser.op_parser import OpParser
+from op2_parser import version
+from op2_parser.op_parser import OpParser
 
-_logpath = Path("op_parser.log")
+_logpath = Path("op2_parser.log")
 _progname = 'Operation parser'
 
 def get_logger():
