@@ -4,11 +4,14 @@ __main__.py
 External Entity Operation Parser
 """
 
+# System
 import logging
 import logging.config
 import sys
 import argparse
 from pathlib import Path
+
+# Op parser
 from op2_parser import version
 from op2_parser.op_parser import OpParser
 

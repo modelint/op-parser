@@ -2,13 +2,16 @@
 # For mysterious reasons the name op_parser.py causes imports to fail in the PyCharm IDE
 # Have given up and named it op2_ for now
 
-from op2_parser.exceptions import OpGrammarFileOpen, OpParseError,\
-    OpInputFileEmpty, OpInputFileOpen
-from op2_parser.op_visitor import OpVisitor
+# System
 from arpeggio import visit_parse_tree, NoMatch
 from arpeggio.cleanpeg import ParserPEG
 import os  # For issuing system commands to generate diagnostic files
 from pathlib import Path
+
+# Op parser
+from op2_parser.exceptions import OpGrammarFileOpen, OpParseError,\
+    OpInputFileEmpty, OpInputFileOpen
+from op2_parser.op_visitor import OpVisitor
 
 class OpParser:
     """
